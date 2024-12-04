@@ -46,6 +46,80 @@ We've also experimented with Transformer, and the result is only slightly below 
 
 ## Model Architecture
 
+### Definition
+```
+FNN(
+  (se_block): Sequential(
+    (0): Linear(in_features=13, out_features=6, bias=True)
+    (1): GELU(approximate='none')
+    (2): Linear(in_features=6, out_features=13, bias=True)
+    (3): Sigmoid()
+  )
+  (path1): Sequential(
+    (0): Linear(in_features=13, out_features=1024, bias=True)
+    (1): LayerNorm((1024,), eps=1e-05, elementwise_affine=True)
+    (2): GELU(approximate='none')
+    (3): Dropout(p=0.3, inplace=False)
+  )
+  (path2): Sequential(
+    (0): Linear(in_features=13, out_features=512, bias=True)
+    (1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+    (2): GELU(approximate='none')
+    (3): Dropout(p=0.2, inplace=False)
+  )
+  (path3): Sequential(
+    (0): Linear(in_features=13, out_features=256, bias=True)
+    (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+    (2): GELU(approximate='none')
+    (3): Dropout(p=0.1, inplace=False)
+  )
+  (pyramid): ModuleList(
+    (0): Sequential(
+      (0): Linear(in_features=1792, out_features=896, bias=True)
+      (1): LayerNorm((896,), eps=1e-05, elementwise_affine=True)
+      (2): GELU(approximate='none')
+      (3): Dropout(p=0.25, inplace=False)
+    )
+    (1): Sequential(
+      (0): Linear(in_features=896, out_features=448, bias=True)
+      (1): LayerNorm((448,), eps=1e-05, elementwise_affine=True)
+      (2): GELU(approximate='none')
+      (3): Dropout(p=0.2, inplace=False)
+    )
+    (2): Sequential(
+      (0): Linear(in_features=448, out_features=224, bias=True)
+      (1): LayerNorm((224,), eps=1e-05, elementwise_affine=True)
+      (2): GELU(approximate='none')
+      (3): Dropout(p=0.15, inplace=False)
+    )
+  )
+  (gates): ModuleList(
+    (0): Sequential(
+      (0): Linear(in_features=1792, out_features=896, bias=True)
+      (1): Sigmoid()
+    )
+    (1): Sequential(
+      (0): Linear(in_features=896, out_features=448, bias=True)
+      (1): Sigmoid()
+    )
+    (2): Sequential(
+      (0): Linear(in_features=448, out_features=224, bias=True)
+      (1): Sigmoid()
+    )
+  )
+  (output_heads): ModuleList(
+    (0-2): 3 x Sequential(
+      (0): Linear(in_features=224, out_features=64, bias=True)
+      (1): GELU(approximate='none')
+      (2): Linear(in_features=64, out_features=1, bias=True)
+    )
+  )
+)
+```
+
+### Figures
+Checkout `/images` folder of this repo.
+
 ### Overview
 Key components:
 - Squeeze-and-Excitation (SE) Block
@@ -86,20 +160,21 @@ Each gate uses Sigmoid activation for feature selection
 
 #### E. Output Heads
 Three parallel output heads
+
 Each head: 224 → 64 → 1
 
 ### Training Parameters
 
 #### Optimizer
-Optimizer: `AdamW`
-learning_rate: `0.001`
-weight_decay: `1e-5`
+- Optimizer: `AdamW`
+- learning_rate: `0.001`
+- weight_decay: `1e-5`
 
 #### Learning Rate Scheduler
-Scheduler: OneCycleLR
-max_lr: `0.001`
-epochs: `100`,
-pct_start: `0.3`
+- Scheduler: OneCycleLR
+- max_lr: `0.001`
+- epochs: `100`
+- pct_start: `0.3`
 
 #### Training Configuration
 - Epochs: 100
